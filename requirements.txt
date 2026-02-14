@@ -1,0 +1,18 @@
+# Core ML Libraries
+torch>=2.0.0
+transformers>=4.40.0
+datasets>=2.14.0
+trl>=0.8.0
+peft>=0.8.0
+
+# Optimization
+unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git
+
+# vLLM for data generation
+vllm>=0.4.0
+
+# Utilities
+requests>=2.31.0
+tqdm>=4.66.0
+pyyaml>=6.0
+huggingface-hub>=0.19.0

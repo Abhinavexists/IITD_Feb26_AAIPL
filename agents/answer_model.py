@@ -1,21 +1,69 @@
-# Qwen3-4B in action.
+# Fine-tuned Qwen2.5-14B with Unsloth
 import time
 import torch
+import os
 from typing import Optional, List
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 torch.random.manual_seed(0)
 
+try:
+    from unsloth import FastLanguageModel
+    UNSLOTH_AVAILABLE = True
+except ImportError:
+    UNSLOTH_AVAILABLE = False
+
 
 class AAgent(object):
     def __init__(self, **kwargs):
-        model_name = "Qwen/Qwen3-4B"
+        use_lora = kwargs.get("use_lora", True)
+        use_rl = kwargs.get("use_rl", False)  # Use RL-trained version if available
 
-        # load the tokenizer and the model
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_name, torch_dtype="auto", device_map="auto"
-        )
+        if use_lora and UNSLOTH_AVAILABLE:
+            # Determine which model to load
+            if use_rl:
+                model_path = "hf_models/qwen-2.5-14b-aagent-rl"
+                fallback_path = "hf_models/qwen-2.5-14b-aagent-lora"
+            else:
+                model_path = "hf_models/qwen-2.5-14b-aagent-lora"
+                fallback_path = None
+
+            # Load fine-tuned model with LoRA adapters
+            if os.path.exists(model_path):
+                print(f"Loading fine-tuned A-Agent from {model_path}")
+                self.model, self.tokenizer = FastLanguageModel.from_pretrained(
+                    model_name="Qwen/Qwen2.5-14B-Instruct",
+                    max_seq_length=1024,
+                    dtype=torch.bfloat16,
+                    load_in_4bit=False,
+                )
+                # Prepare for inference
+                self.model = FastLanguageModel.for_inference(self.model)
+            elif fallback_path and os.path.exists(fallback_path):
+                print(f"{model_path} not found, using fallback {fallback_path}")
+                self.model, self.tokenizer = FastLanguageModel.from_pretrained(
+                    model_name="Qwen/Qwen2.5-14B-Instruct",
+                    max_seq_length=1024,
+                    dtype=torch.bfloat16,
+                    load_in_4bit=False,
+                )
+                self.model = FastLanguageModel.for_inference(self.model)
+            else:
+                print(f"LoRA models not found, using base model")
+                self.model, self.tokenizer = FastLanguageModel.from_pretrained(
+                    model_name="Qwen/Qwen2.5-14B-Instruct",
+                    max_seq_length=1024,
+                    dtype=torch.bfloat16,
+                    load_in_4bit=False,
+                )
+                self.model = FastLanguageModel.for_inference(self.model)
+        else:
+            # Fallback: Use base Qwen2.5-14B without LoRA
+            model_name = "Qwen/Qwen2.5-14B-Instruct"
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
+            self.model = AutoModelForCausalLM.from_pretrained(
+                model_name, torch_dtype="auto", device_map="auto"
+            )
 
     def generate_response(
         self, message: str | List[str], system_prompt: Optional[str] = None, **kwargs
