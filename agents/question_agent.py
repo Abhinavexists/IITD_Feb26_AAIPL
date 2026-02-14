@@ -27,7 +27,7 @@ class QuestioningAgent(object):
             "{{\n"
             '  "topic": "{}",\n'
             '  "question": "{}",\n'
-            '  "choices": ["A) {}", "B) {}", "C) {}", "D) {}"],\n'
+            '  "choices": ["{}", "{}", "{}", "{}"],\n'
             '  "answer": "{}",\n'
             '  "explanation": "{}"\n'
             "}}"
@@ -37,7 +37,7 @@ class QuestioningAgent(object):
         for sample in inc_samples:
             question = sample.get("question", "")
             choices = sample.get("choices", [""] * 4)
-            answer = sample.get("answer", "")
+            answer = sample.get("expected_answer", sample.get("answer", ""))
             explanation = sample.get("explanation", "")
             sample_str += (
                 fmt.format(
@@ -57,33 +57,39 @@ class QuestioningAgent(object):
         """Generate an MCQ based question on given topic with specified difficulty"""
 
         if wadvsys:
-            # TODO: Manipulate this SYS prompt for better results
-            sys_prompt = """
-            You are an **expert-level examiner** with deep expertise in designing **highly challenging and conceptually rigorous multiple-choice questions (MCQs)** for the **Quantitative Aptitude and Analytical Reasoning** sections of top-tier competitive exams.
-            Think step by step to generate the question and solve the same, but only output the final answer. Do not show your thinking process.
-            **Please DO NOT reveal the solution steps or any intermediate reasoning.**
-            """
+            sys_prompt = (
+                "You are an expert-level examiner specializing in designing highly challenging "
+                "multiple-choice questions (MCQs) for competitive logical reasoning exams. "
+                "Your expertise covers: Syllogisms, Seating Arrangements (Linear & Circular), "
+                "Blood Relations & Family Tree, and Mixed Series (Alphanumeric patterns).\n\n"
+                "IMPORTANT CONSTRAINTS:\n"
+                "- For Seating Arrangements: NEVER generate numeric/counting questions "
+                "(e.g., 'how many permutations?'). Only generate logic-based positioning questions.\n"
+                "- Think step by step to generate and verify the question, but only output the final JSON.\n"
+                "- Do NOT reveal solution steps or intermediate reasoning in the output.\n"
+                "- Ensure the correct answer is verifiable and unambiguous."
+            )
         else:
             sys_prompt = "You are an examiner tasked with creating extremely difficult multiple-choice questions"
         tmpl = (
             "Generate an EXTREMELY DIFFICULT MCQ on topic: {0}.\n\n"
-            "**CRITICAL REQUIREMENTS:**\n"
-            '1.  **Topic Alignment**: The "question" must be strictly relevant to the topic: {1}.\n'
-            "2.  **Question Quality**: The question must be EXTREMELY DIFFICULT, clear, and test deep conceptual understanding. Avoid trivial or ambiguous questions.\n"
-            '3.  **Choices (4 total)**: Generate exactly FOUR multiple-choice options, labeled "A)", "B)", "C)", and "D)".\n'
-            "4.  **Single Correct Answer**: Ensure that option {2} is only factually correct.\n"
-            "5.  **Plausible Distractors**: While option {3} are three incorrect UNIQUE choices which are highly plausible and common misconceptions related to the topic, designed to mislead someone without expert knowledge.\n"
-            '6.  **Answer Key**: The "answer" field in the JSON should be ONLY the letter {4}.\n'
-            '7.  **Explanation**: The "explanation" field provides a concise (under 100 words) and clear justification for why the correct answer is correct.\n\n'
+            "CRITICAL REQUIREMENTS:\n"
+            '1. Topic Alignment: The question must be strictly relevant to: {1}.\n'
+            "2. Question Quality: Must be EXTREMELY DIFFICULT, clear, and test deep conceptual understanding. Avoid trivial or ambiguous questions.\n"
+            '3. Choices (4 total): Generate exactly FOUR options, labeled "A)", "B)", "C)", and "D)".\n'
+            "4. Single Correct Answer: Option {2} must be the ONLY correct answer.\n"
+            "5. Plausible Distractors: Options {3} must be incorrect but highly plausible — common misconceptions designed to mislead.\n"
+            '6. Answer Key: The "answer" field must contain ONLY the letter {4}.\n'
+            '7. Explanation: Concise (under 100 words) justification for why {4} is correct.\n\n'
             "{5}"
-            "RESPONSE FORMAT: Strictly generate a valid JSON object ensuring proper syntax and structure as shown below.\n\n"
+            "RESPONSE FORMAT: Strictly generate a valid JSON object as shown below.\n\n"
             "EXAMPLE: {6}\n"
             "{{\n"
             '  "topic": "{7}",\n'
             '  "question": "...",\n'
             '  "choices": ["A) ...", "B) ...", "C) ...", "D) ..."],\n'
             '  "answer": "{8}",\n'
-            '  "explanation": "Provide a brief explanation why {9} is correct within 100 words."\n'
+            '  "explanation": "Brief explanation why {9} is correct within 100 words."\n'
             "}}"
         )
         # Remove model's preferential bias for options

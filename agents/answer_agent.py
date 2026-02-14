@@ -13,44 +13,63 @@ from .answer_model import AAgent
 class AnsweringAgent(object):
     r"""Agent responsible for answering MCQ questions with confidence scoring"""
 
-    def __init__(self, select_prompt1: bool = True, **kwargs):
+    def __init__(self, **kwargs):
         self.agent = AAgent(**kwargs)
-        self.select_prompt1 = select_prompt1
 
     def build_prompt(self, question_data: Dict[str, str | Any]) -> Tuple[str, str]:
-        """Generate an answer to the given MCQ question with confidence and reasoning"""
+        """Generate answer with reasoning for AAIPL competition MCQs"""
 
-        sys_prompt1 = "You are an expert in quantitative aptitude for competitive exams, solving MCQs with step-by-step reasoning before selecting the correct answer."
-        sys_prompt2 = (
-            "You are an expert answer agent specializing in solving multiple-choice questions (MCQs) that test "
-            "quantitative aptitude skills, as seen in top-tier competitive exams. "
-            "You have a deep understanding of logical reasoning, puzzles, and analytical problem-solving under exam conditions. "
-            "For each question, think step by step using a clear chain-of-thought approach. "
-            "Break down the problem, analyze all options, eliminate distractors, and then confidently select the correct answer. "
-            "Always explain your reasoning before finalizing your choice."
+        # System prompt focused on the 4 AAIPL competition topics
+        sys_prompt = (
+            "You are an elite logical reasoning and puzzle-solving agent specializing in "
+            "competitive exam MCQs. Your expertise covers:\n"
+            "- Syllogisms (premises, conclusions, deductive reasoning)\n"
+            "- Seating Arrangements (linear and circular positioning logic)\n"
+            "- Blood Relations & Family Tree (relationship inference)\n"
+            "- Mixed Series (alphanumeric pattern recognition)\n\n"
+            "CRITICAL RULES:\n"
+            "- Think step-by-step before answering\n"
+            "- Analyze each option methodically; eliminate distractors\n"
+            "- For syllogisms: draw Venn diagrams mentally, check all premises\n"
+            "- For seating: track positions carefully, note directions (left/right, clockwise)\n"
+            "- For blood relations: map the family tree step by step\n"
+            "- For series: identify separate patterns for letters and numbers\n"
+            "- If multiple answers seem valid, choose the MOST ACCURATE one\n"
+            "- Always output valid JSON - no extra text before or after"
         )
 
-        tmpl = (
-            "INSTRUCTIONS FOR ANSWERING:\n"
-            "1. Carefully read and understand what is being asked.\n"
-            "2. Consider why each choice might be correct or incorrect.\n"
-            "3. There is only **ONE OPTION** correct.\n"
-            "4. Provide reasoning within 100 words\n\n"
-            "Now answer the following question:\n"
-            "Question: {}\n"
-            "Choices: {}\n\n"
-            "RESPONSE FORMAT: Strictly generate a valid JSON object as shown below:\n"
+        # User prompt with domain-adaptive instructions
+        user_prompt = (
+            "Answer the following multiple-choice question:\n\n"
+            "QUESTION: {question}\n\n"
+            "OPTIONS:\n{options}\n\n"
+            "INSTRUCTIONS:\n"
+            "1. Identify the topic (syllogisms/seating/blood-relations/series)\n"
+            "2. Apply step-by-step logical reasoning specific to that topic\n"
+            "3. Analyze each option carefully - watch for traps and distractors\n"
+            "4. Eliminate wrong options systematically\n"
+            "5. Select the single best answer\n\n"
+            "OUTPUT FORMAT (strict JSON only):\n"
             "{{\n"
-            '    "answer": "One of the letter from [A, B, C, D]",\n'
-            '    "reasoning": "Brief explanation within 100 words"\n'
-            "}}"
+            '  "answer": "C",\n'
+            '  "reasoning": "Step-by-step analysis within 100 words"\n'
+            "}}\n\n"
+            "NOW SOLVE THIS QUESTION:"
         )
 
-        prompt = tmpl.format(
-            question_data["question"], self._format_choices(question_data["choices"])
+        # Format the actual question
+        question_text = question_data.get('question', '')
+        choices = question_data.get('choices', [])
+
+        # Format options using existing helper
+        options_formatted = self._format_choices(choices)
+
+        final_user_prompt = user_prompt.format(
+            question=question_text,
+            options=options_formatted
         )
 
-        return prompt, sys_prompt1 if self.select_prompt1 else sys_prompt2
+        return final_user_prompt, sys_prompt
 
     def answer_question(
         self, question_data: Dict | List[Dict], **kwargs
@@ -177,7 +196,7 @@ class AnsweringAgent(object):
                 formatted.append(f"{letter}) {choice.strip()}")
             else:
                 formatted.append(choice.strip())
-        return " ".join(formatted)
+        return "\n".join(formatted)
 
 
 # Example usage
@@ -211,13 +230,11 @@ if __name__ == "__main__":
     )
     args = argparser.parse_args()
 
-    SELECT_PROMPT1 = False  # Use the first system prompt for answering
-
     # Load sample questions (assuming they're saved from QuestioningAgent)
     with open(args.input_file, "r") as f:
         sample_questions = json.load(f)
 
-    agent = AnsweringAgent(select_prompt1=SELECT_PROMPT1)
+    agent = AnsweringAgent()
 
     # gen_kwargs = {"tgps_show": True, "max_new_tokens": 512, "temperature": 0.1, "top_p": 0.9, "do_sample": True}
     gen_kwargs = {"tgps_show": True}
