@@ -9,7 +9,7 @@ torch.random.manual_seed(0)
 
 class AAgent(object):
     def __init__(self, **kwargs):
-        model_name = "Qwen/Qwen3-4B"
+        model_name = "hf_models/Qwen/Qwen2.5-14B-Instruct"
 
         # load the tokenizer and the model
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")

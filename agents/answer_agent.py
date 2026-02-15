@@ -46,6 +46,8 @@ class AnsweringAgent(object):
             "}}"
         )
 
+        print(question_data)
+
         prompt = tmpl.format(
             question_data["question"], self._format_choices(question_data["choices"])
         )

@@ -2,11 +2,11 @@
 set -e
 
 # ====== USER CONFIGURATION ======
-REPO_NAME="IITD_Feb26_AAIPL"
+REPO_NAME="AMD_HACKS"
 VISIBILITY="public"                    # "public" or "private"
-COMMIT_MESSAGE="Initial commit"
-GITHUB_USERNAME="your-username"
-GITHUB_EMAIL="you@example.com"
+COMMIT_MESSAGE="feat: final version"
+GITHUB_USERNAME="Abhinavexists"
+GITHUB_EMAIL="abhinavkumarsingh2023@gmail.com"
 # =================================
 
 # Step 1: Install GitHub CLI if missing

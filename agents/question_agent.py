@@ -58,33 +58,41 @@ class QuestioningAgent(object):
 
         if wadvsys:
             # TODO: Manipulate this SYS prompt for better results
-            sys_prompt = """
-            You are an **expert-level examiner** with deep expertise in designing **highly challenging and conceptually rigorous multiple-choice questions (MCQs)** for the **Quantitative Aptitude and Analytical Reasoning** sections of top-tier competitive exams.
-            Think step by step to generate the question and solve the same, but only output the final answer. Do not show your thinking process.
-            **Please DO NOT reveal the solution steps or any intermediate reasoning.**
-            """
+                sys_prompt = """You are an expert question generator for competitive entrance exams. Your task is to create challenging, well-structured multiple-choice questions (MCQs) that test logical reasoning and analytical thinking.
+    
+    CRITICAL RESTRICTIONS:
+    - Generate ONLY questions on the topic listed above
+    - If the topic is about For Seating Arrangements: DO NOT generate numeric-style questions like "How many permutations..." - only logic/identification questions
+    - All questions must be in English
+    - Do NOT hardcode or repeat questions
+    
+    OUTPUT FORMAT REQUIREMENTS:
+    You must always output in the following JSON format with these exact fields:
+    
+    {
+        "topic": "<Topic of the Question>",
+        "question": "<full question text>",
+        "choices": [
+            "A) <choice A text>",
+            "B) <choice B text>",
+            "C) <choice C text>",
+            "D) <choice D text>"
+        ],
+        "answer": "<correct choice letter only>",
+        "explanation": "brief explanation within 100 words for why the answer is correct"
+    }
+    
+    FORMAT VALIDATION RULES:
+    - Exactly 4 choices labeled A) through D)
+    - Answer must be exactly one letter (A, B, C, or D)
+    - Combined tokens for topic, question, choices, and answer: ≤ 150 tokens
+    - Explanation tokens: ≤ 874 tokens
+    - Total tokens: ≤ 1024 tokens
+    - Valid JSON format is MANDATORY"""
         else:
             sys_prompt = "You are an examiner tasked with creating extremely difficult multiple-choice questions"
-        tmpl = (
-            "Generate an EXTREMELY DIFFICULT MCQ on topic: {0}.\n\n"
-            "**CRITICAL REQUIREMENTS:**\n"
-            '1.  **Topic Alignment**: The "question" must be strictly relevant to the topic: {1}.\n'
-            "2.  **Question Quality**: The question must be EXTREMELY DIFFICULT, clear, and test deep conceptual understanding. Avoid trivial or ambiguous questions.\n"
-            '3.  **Choices (4 total)**: Generate exactly FOUR multiple-choice options, labeled "A)", "B)", "C)", and "D)".\n'
-            "4.  **Single Correct Answer**: Ensure that option {2} is only factually correct.\n"
-            "5.  **Plausible Distractors**: While option {3} are three incorrect UNIQUE choices which are highly plausible and common misconceptions related to the topic, designed to mislead someone without expert knowledge.\n"
-            '6.  **Answer Key**: The "answer" field in the JSON should be ONLY the letter {4}.\n'
-            '7.  **Explanation**: The "explanation" field provides a concise (under 100 words) and clear justification for why the correct answer is correct.\n\n'
-            "{5}"
-            "RESPONSE FORMAT: Strictly generate a valid JSON object ensuring proper syntax and structure as shown below.\n\n"
-            "EXAMPLE: {6}\n"
-            "{{\n"
-            '  "topic": "{7}",\n'
-            '  "question": "...",\n'
-            '  "choices": ["A) ...", "B) ...", "C) ...", "D) ..."],\n'
-            '  "answer": "{8}",\n'
-            '  "explanation": "Provide a brief explanation why {9} is correct within 100 words."\n'
-            "}}"
+        tmpl = ( 
+            f"TOPIC TO GENERATE ON: {topic}"
         )
         # Remove model's preferential bias for options
         correct_option = random.choice(["A", "B", "C", "D"])
@@ -96,19 +104,7 @@ class QuestioningAgent(object):
             inc_samples_ex = self.build_inc_samples(inc_samples, topic)
         else:
             inc_samples_ex = ""
-        prompt = tmpl.format(
-            topic,
-            topic,
-            correct_option,
-            distractors,
-            correct_option,
-            inc_samples_ex,
-            topic,
-            topic.split("/")[-1],
-            correct_option,
-            correct_option,
-        )
-
+        prompt = tmpl
         return prompt, sys_prompt
 
     def generate_question(

@@ -68,3 +68,8 @@ def auto_json(json_str: str) -> str:
         """
 
     return prompt.format(json_str)
+
+# vllm serve /root/.cache/huggingface/models--Qwen--Qwen2.5-14B-Instruct/snapshots/cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8 \
+#     --enable-lora \
+#     --lora-modules qa-agent=/workspace/AAIPL/hf_models/qwen-2.5-14b-qagent-lora/checkpoint-162 aa-agent3=/workspace/AAIPL/hf_models/qwen-2.5-14b-qagent-lora/checkpoint-162 aa-agent2=/workspace/AAIPL/hf_models/qwen-2.5-14b-qagent-lora/checkpoint-108 aa-agent1=/workspace/AAIPL/hf_models/qwen-2.5-14b-qagent-lora/checkpoint-54 \
+#     --max-lora-rank 32
