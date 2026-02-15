@@ -1,51 +1,18 @@
-# Fine-tuned Qwen2.5-14B with Unsloth
+# Starting with Qwen3-4B
 import time
-import os
 from typing import Optional, Union, List
-import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-
-try:
-    from unsloth import FastLanguageModel
-    UNSLOTH_AVAILABLE = True
-except ImportError:
-    UNSLOTH_AVAILABLE = False
 
 
 class QAgent(object):
     def __init__(self, **kwargs):
-        use_lora = kwargs.get("use_lora", True)
+        model_name = "Qwen/Qwen3-4B"
 
-        if use_lora and UNSLOTH_AVAILABLE:
-            # Load fine-tuned model with LoRA adapters
-            lora_path = "hf_models/qwen-2.5-14b-qagent-lora"
-
-            if os.path.exists(lora_path):
-                print(f"[*] Loading fine-tuned Q-Agent from {lora_path}")
-                self.model, self.tokenizer = FastLanguageModel.from_pretrained(
-                    model_name="Qwen/Qwen2.5-14B-Instruct",
-                    max_seq_length=2048,
-                    dtype=torch.bfloat16,
-                    load_in_4bit=False,
-                )
-                # Prepare for inference
-                self.model = FastLanguageModel.for_inference(self.model)
-            else:
-                print(f"LoRA model not found at {lora_path}, using base model")
-                self.model, self.tokenizer = FastLanguageModel.from_pretrained(
-                    model_name="Qwen/Qwen2.5-14B-Instruct",
-                    max_seq_length=2048,
-                    dtype=torch.bfloat16,
-                    load_in_4bit=False,
-                )
-                self.model = FastLanguageModel.for_inference(self.model)
-        else:
-            # Fallback: Use base Qwen2.5-14B without LoRA
-            model_name = "Qwen/Qwen2.5-14B-Instruct"
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
-            self.model = AutoModelForCausalLM.from_pretrained(
-                model_name, torch_dtype="auto", device_map="auto"
-            )
+        # load the tokenizer and the model
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name, torch_dtype="auto", device_map="auto"
+        )
 
     def generate_response(
         self, message: str | List[str], system_prompt: Optional[str] = None, **kwargs

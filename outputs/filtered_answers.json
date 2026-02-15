@@ -1,0 +1,23 @@
+[
+    {
+        "answer": "D",
+        "reasoning": "Premise 2 states 'No artist is a mathematician', which directly implies that some artists are not mathematicians. This matches option D. Options A, B, and C do not necessarily follow from the given premises."
+    },
+    {
+        "answer": "B",
+        "reasoning": "Raj is the son of Meera, who is the daughter of Kiran and Leela. Arjun is the son of Anjali, Leela's sister. Since Raj's mother Meera and Arjun's grandmother Leela are sisters, Raj and Arjun are first cousins. When Raj marries Priya (Arjun's daughter), Raj becomes Arjun's brother-in-law."
+    },
+    {
+        "answer": "C",
+        "reasoning": "Analyzing the conditions: Q sits next to seat 4, R and S cannot sit next to each other, T is two seats right of P, exactly one person is between U and V with U to the left of V, W is at one end, seat 2 is neither R nor S, and seat 7 is either R or S. Given these constraints, V sitting at seat 5 (option C) aligns without contradictions. Other options conflict with given rules."
+    },
+    {
+        "answer": "B",
+        "reasoning": "From condition 1, A is opposite D. From condition 5, F is immediately left of the person opposite A, so F is immediately left of D. Condition 2 states B is immediately right of the person opposite G; since A is opposite D, G must be opposite F. Thus, B is immediately right of F. Condition 3 excludes C from being adjacent to B or D. Condition 6 places H two seats clockwise from B, implying H is next to F. Condition 4 places E such that exactly two people are between E and H's opposite, confirming C is immediately left of B."
+    },
+    {
+        "answer": "B",
+        "reasoning": "The sequence follows Fibonacci numbers for the first part (1, 2, 3, 5, 8, 13, 21, 34, 55). The letters alternate in a pattern: A, C, F, J, O, U, B, H, M. Each letter corresponds to its position in the alphabet (1, 3, 6, 10, 15, 21, 2, 8, 13), which matches the Fibonacci sequence starting from different points. Thus, the next term is 55M."
+    },
+    null
+]
